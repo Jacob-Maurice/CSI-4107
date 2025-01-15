@@ -1,94 +1,79 @@
-import re
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-from nltk.tokenize import word_tokenize
-import json
-
-def load_corpus(file_path, num_lines=5):
+def load_documents(filepath):
     """
-    Load and inspect the corpus file.
-
+    Loads a collection of documents from the specified file path.
+    
     Args:
-        file_path (str): Path to the `corpus.jsonl` file.
-        num_lines (int): Number of lines to display for inspection.
-
+        filepath: 
+        
     Returns:
-        list: A list of parsed JSON objects from the corpus.
     """
-    corpus = []
-    with open(file_path, 'r') as f:
-        for i, line in enumerate(f):
-            if i >= num_lines:
-                break
-            document = json.loads(line)
-            corpus.append(document)
-    return corpus
+    pass
 
-file_path = "scifact/corpus.jsonl"
-sample_corpus = load_corpus(file_path, num_lines=5)
-
-for i, doc in enumerate(sample_corpus):
-    print(f"Document {i + 1}:")
-    print(json.dumps(doc, indent=4)) 
-    print()
-
-# Download required NLTK data files (uncomment if running for the first time)
-# import nltk
-# nltk.download('punkt')
-# nltk.download('stopwords')
-
-def preprocess_document(text, use_stemming=False):
+def preprocess_documents(documents):
     """
-    Preprocesses a document by tokenizing, removing stopwords, and optionally stemming.
-
+    Preprocesses the documents by removing stopwords, tokenizing, and applying stemming or lemmatization.
+    
     Args:
-        text (str): The input text to preprocess.
-        use_stemming (bool): Whether to apply stemming using PorterStemmer.
-
+        documents: 
+        
     Returns:
-        list: A list of preprocessed tokens.
     """
-    # Initialize stopwords and stemmer
-    stop_words = set(stopwords.words('english'))
-    stemmer = PorterStemmer() if use_stemming else None
+    pass
 
-    # Tokenize text (split into words)
-    tokens = word_tokenize(text.lower())  # Convert to lowercase for uniformity
-
-    # Remove punctuation, numbers, and stopwords
-    tokens = [
-        re.sub(r'\W+', '', token)  # Remove non-alphanumeric characters
-        for token in tokens if token.isalpha() and token not in stop_words
-    ]
-
-    # Apply stemming if enabled
-    if use_stemming:
-        tokens = [stemmer.stem(token) for token in tokens]
-
-    return tokens
-
-def preprocess_corpus(file_path, use_stemming=False):
+def build_inverted_index(documents):
     """
-    Preprocesses all documents in a corpus file.
-
+    Constructs an inverted index from the preprocessed documents.
+    
     Args:
-        file_path (str): Path to the `corpus.jsonl` file.
-        use_stemming (bool): Whether to apply stemming using PorterStemmer.
-
+        documents: 
+        
     Returns:
-        dict: A dictionary with document IDs as keys and preprocessed tokens as values.
     """
-    processed_corpus = {}
+    pass
 
-    # Read JSONL file line by line
-    with open(file_path, 'r') as f:
-        for line in f:
-            document = json.loads(line)
-            doc_id = document['doc_id']  # Assuming `doc_id` is the identifier
-            text = document['text']      # Assuming `text` contains the content
+def calculate_tf_idf(inverted_index, total_documents):
+    """
+    Calculates the TF-IDF scores for terms in the inverted index.
+    
+    Args:
+        inverted_index: 
+        total_documents: 
+        
+    Returns:
+    """
+    pass
 
-            # Preprocess the text
-            tokens = preprocess_document(text, use_stemming)
-            processed_corpus[doc_id] = tokens
+def retrieve_documents(query, inverted_index, scoring_method="tf_idf"):
+    """
+    Retrieves documents relevant to a query using the specified scoring method.
+    
+    Args:
+        query: 
+        inverted_index: 
+        scoring_method: 
+        
+    Returns:
+    """
+    pass
 
-    return processed_corpus
+def evaluate_retrieval(retrieved_documents, relevant_documents):
+    """
+    Evaluates the retrieval system using metrics such as precision, recall, and F1-score.
+    
+    Args:
+        retrieved_documents: 
+        relevant_documents: 
+        
+    Returns:
+    """
+    pass
+
+def main():
+    """
+    Main function to execute the workflow: load documents, preprocess, build index, and evaluate retrieval.
+    
+    Args:
+        
+    Returns:
+    """
+    pass
