@@ -34,15 +34,15 @@ queries_path = "scifact/queries.jsonl"
 corpus = load_documents(corpus_path)
 queries = load_documents(queries_path)
 
-# print()
-# print("CORPUS")
-# print()
-# print(corpus)
-# print()
-# print("QUERIES")
-# print()
-# print(queries)
-# print()
+print()
+print("CORPUS")
+print()
+print(corpus)
+print()
+print("QUERIES")
+print()
+print(queries)
+print()
 
 def preprocess_documents(documents):
     """
@@ -74,108 +74,89 @@ def preprocess_documents(documents):
     
     return processed_docs
 
-# print("PREPROCESSED CORPUS")
-# print()
+print("PREPROCESSED CORPUS")
+print()
 preprocessed_corpus = preprocess_documents(corpus)
-# print(preprocessed_corpus)
-# print()
+print(preprocessed_corpus)
+print()
+print("PREPROCESSED QUERIES")
+print()
+preprocessed_queries = preprocess_documents(queries)
+print(preprocessed_queries)
+print()
 
 def build_inverted_index(documents):
     """
-    Constructs an inverted index from the preprocessed documents.
-    
+    Constructs an inverted index from the preprocessed documents and computes TF and DF.
+
     Args:
         documents (list of list of str): A list where each entry is a list of preprocessed tokens 
         from a document.
-        
+
     Returns:
-        dict: An inverted index where keys are terms and values are lists of document IDs (0-based indices).
+        dict: An inverted index where keys are terms and values are dictionaries with:
+              - "doc_ids": a list of document IDs (0-based indices) where the term appears.
+              - "tf": a list of term frequencies corresponding to each document.
+              - "df": the document frequency of the term (total number of documents it appears in).
     """
     inverted_index = {}
-    
-    for doc_id, tokens in enumerate(documents): 
+
+    for doc_id, tokens in enumerate(documents):
+        term_counts = {}
         for token in tokens:
-            if token in inverted_index:
-                if doc_id not in inverted_index[token]: 
-                    inverted_index[token].append(doc_id)
-            else:
-                inverted_index[token] = [doc_id]
-                
+            term_counts[token] = term_counts.get(token, 0) + 1
+
+        for token, count in term_counts.items():
+            if token not in inverted_index:
+                inverted_index[token] = {"doc_ids": [], "tf": [], "df": 0}
+
+            inverted_index[token]["doc_ids"].append(doc_id)
+            inverted_index[token]["tf"].append(count)
+            inverted_index[token]["df"] += 1
+
     return inverted_index
 
-# print("INVERTED INDEX")
-# print()
-inverted_index = build_inverted_index(preprocessed_corpus)
-# print(inverted_index)
-# print()
+print("INVERTED INDEX")
+print()
+combined_documents = preprocessed_corpus + preprocessed_queries
+inverted_index = build_inverted_index(combined_documents)
+print(inverted_index)
+print()
 
-def calculate_tf_idf(inverted_index, documents):
+def calculate_tf_idf(inverted_index, total_documents):
     """
     Calculates the TF-IDF scores for terms in the inverted index.
     
     Args:
-        inverted_index (dict): An inverted index where keys are terms and values are lists of document IDs 
-                               (or sets of document IDs).
-        documents (list of list of str): A list of preprocessed documents where each document is a list of tokens.
+        inverted_index (dict): An inverted index where keys are terms and values are dictionaries with:
+                               - "doc_ids": List of document IDs where the term appears.
+                               - "tf": List of term frequencies for each corresponding document.
+                               - "df": Document frequency of the term.
+        total_documents (int): Total number of documents in the corpus.
         
     Returns:
         dict: A nested dictionary where keys are terms, and values are dictionaries with document IDs as keys 
               and TF-IDF scores as values.
     """
-    total_documents = len(documents)
     tf_idf_scores = defaultdict(dict)
-    
-    for term, doc_ids in inverted_index.items():
-        doc_freq = len(doc_ids)
-        idf = math.log(total_documents / doc_freq)
+
+    for term, data in inverted_index.items():
+        doc_ids = data["doc_ids"]
+        term_tfs = data["tf"]
+        df = data["df"]
         
-        for doc_id in doc_ids:
-            term_count_in_doc = inverted_index[term].count(doc_id) 
-            tf = term_count_in_doc / len(documents[doc_id])
+        idf = math.log2(total_documents / df)
+        
+        for doc_id, tf in zip(doc_ids, term_tfs):
             tf_idf_scores[term][doc_id] = tf * idf
-    
+
     return dict(tf_idf_scores)
 
-# print("TF-IDF SCORES")
-# print()
-tf_idf = calculate_tf_idf(inverted_index, corpus)
-# print(tf_idf)
-# print()
-
-def retrieve_documents(query, tf_idf_scores, scoring_method="tf_idf"):
-    """
-    Retrieves documents relevant to a query using precomputed TF-IDF scores.
-    
-    Args:
-        query (str or dict): The query string or a dictionary containing the query.
-        tf_idf_scores (dict): A nested dictionary where keys are terms, and values are dictionaries
-                              mapping document IDs to TF-IDF scores.
-        scoring_method (str): The scoring method to use (default is "tf_idf").
-        
-    Returns:
-        list: A sorted list of relevant document IDs and scores.
-    """
-    
-    # If the query is a dictionary, extract the 'text' field
-    if isinstance(query, dict):
-        query = query.get('text', '').lower()
-    else:
-        query = query.lower()
-
-    query_terms = query.split()
-    doc_scores = defaultdict(float)
-
-    for term in query_terms:
-        if term in tf_idf_scores:
-            for doc_id, tf_idf in tf_idf_scores[term].items():
-                if scoring_method == "tf_idf":
-                    doc_scores[doc_id] += tf_idf
-                else:
-                    raise ValueError(f"Unsupported scoring method: {scoring_method}")
-
-    sorted_docs = sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)
-
-    return sorted_docs
+print("TF-IDF SCORES")
+print()
+tf_idf = calculate_tf_idf(inverted_index, len(combined_documents))
+print(tf_idf)
+print()
 
 # print("RETRIEVING DOCUMENTS FOR QUERY X")
 # print()
